@@ -29,7 +29,7 @@ WaterConsumption_Forecast/
 │   └── processed/                     # Train/Val/Test splits & feature-engineered data
 │
 ├── models/
-│   └── xgboost_model.pkl              # Serialized winning tree-based model (Random Forest)
+│   └── random_forest_model.pkl         # Serialized winning tree-based model (Random Forest)
 │
 ├── notebooks/
 │   ├── 01_data_exploration.ipynb      # EDA and visualizations

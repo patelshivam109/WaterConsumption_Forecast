@@ -1,18 +1,17 @@
 import pandas as pd
 import numpy as np
-import xgboost as xgb
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import pickle
 import os
 
 class WaterDemandForecaster:
-    def __init__(self, model_path="models/xgboost_model.pkl"):
-        self.model = xgb.XGBRegressor(
-            n_estimators=100, 
-            learning_rate=0.1, 
-            max_depth=5, 
-            random_state=42, 
-            objective='reg:squarederror'
+    def __init__(self, model_path="models/random_forest_model.pkl"):
+        self.model = RandomForestRegressor(
+            n_estimators=200, 
+            max_depth=10, 
+            random_state=42,
+            n_jobs=-1
         )
         self.model_path = model_path
         self.features = ['day_of_week', 'is_weekend', 'month', 'day', 'lag_1', 'lag_7', 'rolling_mean_7', 'rolling_std_7']
@@ -22,13 +21,7 @@ class WaterDemandForecaster:
         X_train = train_df[self.features]
         y_train = train_df[self.target]
         
-        eval_set = None
-        if val_df is not None:
-            X_val = val_df[self.features]
-            y_val = val_df[self.target]
-            eval_set = [(X_val, y_val)]
-            
-        self.model.fit(X_train, y_train, eval_set=eval_set, verbose=False)
+        self.model.fit(X_train, y_train)
         self.save_model()
 
     def predict(self, X):
