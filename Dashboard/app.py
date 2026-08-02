@@ -159,7 +159,7 @@ else:
     region_data = df_processed[df_processed['region'] == selected_region].copy()
 
 # --- KPI Section ---
-st.markdown("### 📊 Key Performance Indicators")
+st.markdown("###  Key Performance Indicators")
 col1, col2, col3, col4 = st.columns(4)
 
 avg_consumption = region_data['consumption_liters'].mean()
@@ -201,62 +201,58 @@ with col4:
     """, unsafe_allow_html=True)
 
 # --- Charts Section ---
-col_chart, col_alerts = st.columns([2.5, 1])
+st.markdown("###  Historical & Predicted Consumption")
 
-with col_chart:
-    st.markdown('<div class="glass-container">', unsafe_allow_html=True)
-    st.markdown("### 📈 Historical & Predicted Consumption")
-    
-    fig = go.Figure()
+fig = go.Figure()
 
-    # Actual Data
-    fig.add_trace(go.Scatter(x=region_data['date'], y=region_data['consumption_liters'], 
-                             mode='lines', name='Actual Consumption', 
-                             line=dict(color='#00d2ff', width=2), fill='tozeroy', fillcolor='rgba(0, 210, 255, 0.1)'))
-                             
-    # Model Predictions (if model exists)
-    if hasattr(forecaster.model, 'predict'):
-        eval_data = region_data.copy()
-        eval_data['prediction'] = forecaster.predict(eval_data)
-        fig.add_trace(go.Scatter(x=eval_data['date'], y=eval_data['prediction'], 
-                                 mode='lines', name='AI Forecast', 
-                                 line=dict(color='#ff9f43', width=2, dash='dash')))
+# Actual Data
+fig.add_trace(go.Scatter(x=region_data['date'], y=region_data['consumption_liters'], 
+                         mode='lines', name='Actual Consumption', 
+                         line=dict(color='#00d2ff', width=2), fill='tozeroy', fillcolor='rgba(0, 210, 255, 0.1)'))
+                         
+# Model Predictions (if model exists)
+if hasattr(forecaster.model, 'predict'):
+    eval_data = region_data.copy()
+    eval_data['prediction'] = forecaster.predict(eval_data)
+    fig.add_trace(go.Scatter(x=eval_data['date'], y=eval_data['prediction'], 
+                             mode='lines', name='AI Forecast', 
+                             line=dict(color='#ff9f43', width=2, dash='dash')))
 
-    # Anomalies
-    anomalies = region_data[region_data['is_anomaly'] == 1]
-    spikes = anomalies[anomalies['anomaly_type'] == 'Spike']
-    drops = anomalies[anomalies['anomaly_type'] == 'Drop']
-    
-    if not spikes.empty:
-        fig.add_trace(go.Scatter(x=spikes['date'], y=spikes['consumption_liters'], 
-                                 mode='markers', name='Spikes', 
-                                 marker=dict(color='#ff4b4b', size=10, symbol='triangle-up', line=dict(color='white', width=1))))
-    if not drops.empty:
-        fig.add_trace(go.Scatter(x=drops['date'], y=drops['consumption_liters'], 
-                                 mode='markers', name='Drops', 
-                                 marker=dict(color='#feca57', size=10, symbol='triangle-down', line=dict(color='white', width=1))))
+# Anomalies
+anomalies = region_data[region_data['is_anomaly'] == 1]
+spikes = anomalies[anomalies['anomaly_type'] == 'Spike']
+drops = anomalies[anomalies['anomaly_type'] == 'Drop']
 
-    fig.update_layout(
-        height=500,
-        margin=dict(l=0, r=0, t=10, b=0),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#ffffff'),
-        xaxis=dict(showgrid=False, linecolor='rgba(255,255,255,0.2)'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', linecolor='rgba(255,255,255,0.2)'),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+if not spikes.empty:
+    fig.add_trace(go.Scatter(x=spikes['date'], y=spikes['consumption_liters'], 
+                             mode='markers', name='Spikes', 
+                             marker=dict(color='#ff4b4b', size=10, symbol='triangle-up', line=dict(color='white', width=1))))
+if not drops.empty:
+    fig.add_trace(go.Scatter(x=drops['date'], y=drops['consumption_liters'], 
+                             mode='markers', name='Drops', 
+                             marker=dict(color='#feca57', size=10, symbol='triangle-down', line=dict(color='white', width=1))))
 
-with col_alerts:
-    st.markdown('<div class="glass-container" style="height: 575px; overflow-y: auto;">', unsafe_allow_html=True)
-    st.markdown("### 🚨 Active Alerts")
-    
-    recent_anomalies = anomalies.sort_values('date', ascending=False).head(8)
-    
-    if not recent_anomalies.empty:
-        for _, row in recent_anomalies.iterrows():
+fig.update_layout(
+    height=500,
+    margin=dict(l=0, r=0, t=10, b=0),
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#ffffff'),
+    xaxis=dict(showgrid=False, linecolor='rgba(255,255,255,0.2)'),
+    yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', linecolor='rgba(255,255,255,0.2)'),
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+)
+st.plotly_chart(fig, use_container_width=True)
+
+# --- Alerts Section ---
+st.markdown("### 🚨 Active Alerts")
+
+recent_anomalies = anomalies.sort_values('date', ascending=False).head(8)
+
+if not recent_anomalies.empty:
+    alert_cols = st.columns(min(len(recent_anomalies), 4))
+    for idx, (_, row) in enumerate(recent_anomalies.iterrows()):
+        with alert_cols[idx % 4]:
             if row['anomaly_type'] == 'Spike':
                 st.markdown(f"""
                 <div class="alert-box-spike">
@@ -271,12 +267,10 @@ with col_alerts:
                     <span style="font-size:0.9em">Sudden Drop: {row['consumption_liters']:,.0f} L</span>
                 </div>
                 """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div style="text-align: center; padding: 40px 20px; color: #55efc4;">
-            <h3>✅ System Stable</h3>
-            <p>No anomalies detected in the selected timeframe.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    st.markdown('</div>', unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <div style="text-align: center; padding: 40px 20px; color: #55efc4;">
+        <h3> =>System Stable</h3>
+        <p>No anomalies detected in the selected timeframe.</p>
+    </div>
+    """, unsafe_allow_html=True)
