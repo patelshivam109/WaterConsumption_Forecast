@@ -12,3 +12,5 @@ streamlit
 jupyter
 ipykernel
 openpyxl
+tensorflow
+nbformat
