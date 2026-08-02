@@ -1,16 +1,6 @@
 pandas
 numpy
 scikit-learn
-xgboost
-lightgbm
-prophet
-statsmodels
-matplotlib
-seaborn
 plotly
 streamlit
-jupyter
-ipykernel
 openpyxl
-tensorflow
-nbformat
