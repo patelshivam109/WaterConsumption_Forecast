@@ -13,7 +13,7 @@ The system predicts future water demand, identifies unusual consumption spikes/d
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Structure.
 
 ```text
 WaterConsumption_Forecast/
